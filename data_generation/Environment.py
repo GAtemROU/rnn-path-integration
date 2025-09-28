@@ -12,7 +12,9 @@ class Environment:
     def __init__(self, num_corners: int, 
                  min_radius: float,
                  max_radius: float,
-                 seed: int = 42):
+                 seed: None | int = None):
+        if seed is not None:
+            random.seed(seed)
         assert num_corners > 2, "Number of corners must be greater than 2"
         self.num_corners = num_corners
         assert min_radius <= max_radius and min_radius > 0, "Invalid radius values"
@@ -20,7 +22,6 @@ class Environment:
         self.max_radius = max_radius
         self.positions = self.gen_positions()
         self.env = self.create_env()
-        random.seed(seed)
 
 
     def create_env(self) -> Polygon:
@@ -74,3 +75,11 @@ class Environment:
             return intersection.coords[0]
         else:
             return None
+        
+
+    def get_env_params(self) -> dict:
+        return {
+            'num_corners': self.num_corners,
+            'min_radius': self.min_radius,
+            'max_radius': self.max_radius,
+        }

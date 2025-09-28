@@ -9,11 +9,13 @@ class Agent:
     def __init__(self, environment: Environment,
                  min_speed: float = 0,
                  max_speed: float = 1.5,
-                 angle_change_prob: float = 0.1,
-                 angle_change_std: float = math.pi / 8,
+                 angle_change_prob: float = 0.7,
+                 angle_change_std: float = math.pi / 4,
                  speed_change_prob: float = 0.1,
                  speed_change_std: float = 0.1,
-                 seed: int = 42):
+                 seed: None | int = None):
+        if seed is not None:
+            random.seed(seed)
         self.environment = environment
         self.min_speed = min_speed
         self.max_speed = max_speed
@@ -26,9 +28,9 @@ class Agent:
         self.speed_change_prob = speed_change_prob
         self.speed_change_std = speed_change_std
         self.path = [(self.x, self.y)]
-        self.data = pd.DataFrame(columns=['step', 'angle', 'speed', 'x', 'y', 'collision'])
+        self.data = pd.DataFrame()
         self.steps = 0
-        random.seed(seed)
+
 
     def step(self, dt: float) -> tuple[float, float]:
         self.steps += 1
@@ -52,7 +54,8 @@ class Agent:
             self.x = x
             self.y = y
 
-        self.data = pd.concat([self.data, pd.DataFrame([[self.steps, self.angle, self.speed, self.x, self.y, collision]], columns=['step', 'angle', 'speed', 'x', 'y', 'collision'])], ignore_index=True)
+        self.data = pd.concat([self.data, pd.DataFrame([[self.steps, self.angle, self.speed, self.x, self.y, collision]], 
+                                                       columns=['step', 'angle', 'speed', 'x', 'y', 'collision'])], ignore_index=True)
 
         # modify angle with angle_change_prob
         if random.random() < self.angle_change_prob:
@@ -61,23 +64,46 @@ class Agent:
 
         # modify speed with speed_change_prob
         if random.random() < self.speed_change_prob:
-            self.speed += random.gauss(0, self.speed_change_std)
-            self.speed = max(self.min_speed, min(self.max_speed, self.speed))
+            self.speed += (self.min_speed + self.max_speed)/2 - self.speed + random.gauss(0, self.speed_change_std)
+            self.speed = self.min_speed + (self.max_speed - self.min_speed) * (1 / (1 + math.exp(-self.speed)))
 
         self.path.append((self.x, self.y))
         return (self.x, self.y)
 
     def get_path(self):
         return self.path
-    
-    def get_data(self):
+
+    def get_data(self) -> pd.DataFrame:
         return self.data
     
     def visualize_path(self):
         self.environment.visualize(details=False)
-        plt.plot(self.data['x'], self.data['y'], 'ro-')
+        points = self.data[['x', 'y']].values
+        steps = self.data['step'].values
+        plt.scatter(points[:, 0], points[:, 1], c=steps, cmap='viridis', s=20)
         plt.xlabel('X')
         plt.ylabel('Y')
         plt.title('Path Visualization')
+        plt.colorbar(label='Step')
         plt.show()
 
+    def get_agent_params(self) -> dict[str, float]:
+        return {
+            'min_speed': self.min_speed,
+            'max_speed': self.max_speed,
+            'speed_change_prob': self.speed_change_prob,
+            'speed_change_std': self.speed_change_std,
+            'angle_change_prob': self.angle_change_prob,
+            'angle_change_std': self.angle_change_std,
+
+        }
+
+    def reset(self):
+        self.x = 0.0
+        self.y = 0.0
+        self.speed = random.uniform(self.min_speed, self.max_speed)
+        self.angle = random.uniform(0, 2 * math.pi)
+        self.path = [(self.x, self.y)]
+        self.data = pd.DataFrame([{'step': 0, 'angle' : self.angle, 'speed': self.speed, 'x': self.x, 'y': self.y, 'collision': False}],
+            columns=['step', 'angle', 'speed', 'x', 'y', 'collision'])
+        self.steps = 0

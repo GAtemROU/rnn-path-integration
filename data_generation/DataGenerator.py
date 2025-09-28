@@ -1,0 +1,73 @@
+import random
+import pandas as pd
+import math
+from Environment import Environment
+from Agent import Agent
+import json
+from tqdm import tqdm
+
+
+class DataGenerator:
+
+    def __init__(self, n_agents: int, n_environments: int, n_runs: int, min_steps: int = 100, max_steps: int = 1000, seed: int = 42):
+        random.seed(seed)
+        self.n_agents = n_agents
+        self.n_environments = n_environments
+        self.n_runs = n_runs
+        self.min_steps = min_steps
+        self.max_steps = max_steps
+        self.data = pd.DataFrame()
+
+
+    def generate_agents(self):
+        agents_params_ranges = [
+            {'min_speed': [0, 0.5],
+             'max_speed': [1, 2],
+             'speed_change_prob': [0.3, 0.7],
+             'speed_change_std': [0.2, 0.5],
+             'angle_change_prob': [0.3, 0.7],
+             'angle_change_std': [math.pi/8, math.pi/2]}
+        ]
+        agents = []
+        for _ in range(self.n_agents):
+            agent_params = {key: random.uniform(*value) for key, value in agents_params_ranges[0].items()}
+            agents.append(agent_params)
+        return agents
+
+    def generate_environments(self):
+        env_params_ranges = [
+            {'num_corners': [3, 8],
+             'min_radius': [5, 10],
+             'max_radius': [15, 20]}
+        ]
+        environments = []
+        for _ in range(self.n_environments):
+            env_params = {key: random.randint(*value) if isinstance(value, list) and len(value) == 2 else value for key, value in env_params_ranges[0].items()}
+            environments.append(env_params)
+        return environments
+
+    def generate_data(self):
+        agents = self.generate_agents()
+        environments = self.generate_environments()
+        total_iterations = self.n_environments * self.n_agents * self.n_runs
+        pbar = tqdm(total=total_iterations, desc="Generating data")
+        run_id = 0
+        for env_id, env_params in enumerate(environments):
+            env = Environment(**env_params)
+            for agent_id, agent_params in enumerate(agents):
+                agent = Agent(environment=env, **agent_params)
+                for _ in range(self.n_runs):
+                    for _ in range(random.randint(self.min_steps, self.max_steps)):
+                        agent.step(1)
+                    run_data = agent.get_data().copy()
+                    run_data['agent_id'] = agent_id
+                    run_data['agent_params'] = json.dumps(agent.get_agent_params())
+                    run_data['environment_id'] = env_id
+                    run_data['environment_params'] = json.dumps(env.get_env_params())
+                    run_data['run_id'] = run_id
+                    self.data = pd.concat([self.data, run_data], ignore_index=True)
+                    pbar.update(1)
+                    agent.reset()
+
+        pbar.close()
+        return self.data
