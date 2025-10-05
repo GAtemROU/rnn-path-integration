@@ -1,8 +1,8 @@
 import random
 import pandas as pd
 import math
-from Environment import Environment
-from Agent import Agent
+from data_generation.Environment import Environment
+from data_generation.Agent import Agent
 import json
 from tqdm import tqdm
 
@@ -46,6 +46,17 @@ class DataGenerator:
             environments.append(env_params)
         return environments
 
+    def prepare_data(self):
+        self.data['step'] = self.data['step'].astype('Int16')
+        self.data['agent_id'] = self.data['agent_id'].astype('Int16')
+        self.data['environment_id'] = self.data['environment_id'].astype('Int16')
+        self.data['run_id'] = self.data['run_id'].astype('Int16')
+        self.data['collision'] = self.data['collision'].astype('boolean')
+        self.data['direction'] = self.data['direction'].astype('float16')
+        self.data['speed'] = self.data['speed'].astype('float16')
+        self.data['x'] = self.data['x'].astype('float16')
+        self.data['y'] = self.data['y'].astype('float16')
+
     def generate_data(self):
         agents = self.generate_agents()
         environments = self.generate_environments()
@@ -66,8 +77,9 @@ class DataGenerator:
                     run_data['environment_params'] = json.dumps(env.get_env_params())
                     run_data['run_id'] = run_id
                     self.data = pd.concat([self.data, run_data], ignore_index=True)
+                    run_id += 1
                     pbar.update(1)
                     agent.reset()
-
         pbar.close()
+        self.prepare_data()
         return self.data

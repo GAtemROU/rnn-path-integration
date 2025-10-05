@@ -1,4 +1,4 @@
-from Environment import Environment
+from data_generation.Environment import Environment
 import random
 import math
 from matplotlib import pyplot as plt
@@ -28,7 +28,7 @@ class Agent:
         self.speed_change_prob = speed_change_prob
         self.speed_change_std = speed_change_std
         self.path = [(self.x, self.y)]
-        self.data = pd.DataFrame()
+        self.data = pd.DataFrame([{'step': 0, 'direction' : 0, 'speed': 0, 'x': self.x, 'y': self.y, 'collision': False}],)
         self.steps = 0
 
 
@@ -55,7 +55,7 @@ class Agent:
             self.y = y
 
         self.data = pd.concat([self.data, pd.DataFrame([[self.steps, self.angle, self.speed, self.x, self.y, collision]], 
-                                                       columns=['step', 'angle', 'speed', 'x', 'y', 'collision'])], ignore_index=True)
+                                                       columns=['step', 'direction', 'speed', 'x', 'y', 'collision'])], ignore_index=True)
 
         # modify angle with angle_change_prob
         if random.random() < self.angle_change_prob:
@@ -78,8 +78,8 @@ class Agent:
     
     def visualize_path(self):
         self.environment.visualize(details=False)
-        points = self.data[['x', 'y']].values
-        steps = self.data['step'].values
+        points = self.data[['x', 'y']].to_numpy()
+        steps = self.data['step'].to_numpy()
         plt.scatter(points[:, 0], points[:, 1], c=steps, cmap='viridis', s=20)
         plt.xlabel('X')
         plt.ylabel('Y')
