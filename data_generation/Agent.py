@@ -1,74 +1,86 @@
 from data_generation.Environment import Environment
-import random
+from numpy.random import default_rng
 import math
 from matplotlib import pyplot as plt
 import pandas as pd
+import numpy as np
+
+
 
 class Agent:
 
     def __init__(self, environment: Environment,
-                 min_speed: float = 0,
-                 max_speed: float = 1.5,
-                 angle_change_prob: float = 0.7,
-                 angle_change_std: float = math.pi / 4,
+                 x0: float = 0.0,
+                 phi0: float = 0.0,
+                 pos0: tuple[float, float] = (0.0,0.0),
+                 v_min = 0.02, 
+                 v_max = 0.6, 
+                 dt = 0.2,
+                 theta_s = 0.2, 
+                 mu_s = 0.0, 
+                 sigma_s = 0.3,
+                 kappa = 4.0,
                  speed_change_prob: float = 0.1,
-                 speed_change_std: float = 0.1,
                  seed: None | int = None):
         if seed is not None:
-            random.seed(seed)
-        self.environment = environment
-        self.min_speed = min_speed
-        self.max_speed = max_speed
-        self.x = 0.0
-        self.y = 0.0
-        self.speed = random.uniform(min_speed, max_speed)
-        self.angle = random.uniform(0, 2 * math.pi)
-        self.angle_change_prob = angle_change_prob
-        self.angle_change_std = angle_change_std
-        self.speed_change_prob = speed_change_prob
-        self.speed_change_std = speed_change_std
-        self.path = [(self.x, self.y)]
-        self.data = pd.DataFrame([{'step': 0, 'direction' : 0, 'speed': 0, 'x': self.x, 'y': self.y, 'collision': False}],)
-        self.steps = 0
-
-
-    def step(self, dt: float) -> tuple[float, float]:
-        self.steps += 1
-        # Update the position based on the current speed and angle
-        x = self.x + self.speed * math.cos(self.angle) * dt
-        y = self.y + self.speed * math.sin(self.angle) * dt
-
-        # Check if the new position is inside the environment
-        collision = False
-        if not self.environment.is_inside((x, y)):
-            collision = True
-            # If not, reflect the angle
-            self.angle = (self.angle + math.pi) % (2 * math.pi)
-
-            # find the intersection point
-            intersection = self.environment.find_intersection(self.x, self.y, x, y)
-            if intersection is not None:
-                self.x = intersection[0]
-                self.y = intersection[1]
+            self.rng = default_rng(seed)
         else:
-            self.x = x
-            self.y = y
+            self.rng = default_rng()
 
-        self.data = pd.concat([self.data, pd.DataFrame([[self.steps, self.angle, self.speed, self.x, self.y, collision]], 
+        self.x0 = x0
+        self.pos0 = pos0
+        self.phi0 = phi0
+        self.xs = x0
+        self.phi = phi0
+        self.pos = np.array(pos0, dtype=float)
+        self.v_min = v_min
+        self.v_max = v_max
+        self.dt = dt
+        self.theta_s = theta_s
+        self.mu_s = mu_s
+        self.sigma_s = sigma_s
+        self.kappa = kappa
+        self.environment = environment
+        self.v = 0.0
+        self.speed_change_prob = speed_change_prob
+        self.path = [self.pos.copy()]
+        self.data = pd.DataFrame([{'step': 0, 'direction' : 0, 'speed': 0, 'x': self.pos[0], 'y': self.pos[1], 'collision': False}])
+        self.steps = 0
+        self.resample_counter = 0
+
+    def step(self, dt: float) -> np.ndarray:
+
+        if self.rng.random() < self.speed_change_prob:
+            noise = self.rng.normal() * self.sigma_s * np.sqrt(self.dt)
+            self.xs += self.theta_s * (self.mu_s - self.xs) * self.dt + noise
+        # Map to speed
+        frac = self.sigmoid(self.xs)
+        self.v = self.v_min + (self.v_max - self.v_min) * frac
+
+        self.steps += 1
+
+        collision = False
+        while True:
+            # Heading update: sample turn from von Mises (center 0)
+            dphi = self.rng.vonmises(0.0, self.kappa)
+            dx = self.v * self.dt * np.cos(self.phi + dphi)
+            dy = self.v * self.dt * np.sin(self.phi + dphi)
+            self.phi += dphi
+            if self.environment.is_inside(self.pos + np.array([dx, dy])):
+                self.pos += np.array([dx, dy])
+                break
+            else:
+                collision = True
+                self.resample_counter += 1
+        
+        self.data = pd.concat([self.data, pd.DataFrame([[self.steps, self.phi, self.v, self.pos[0], self.pos[1], collision]], 
                                                        columns=['step', 'direction', 'speed', 'x', 'y', 'collision'])], ignore_index=True)
 
-        # modify angle with angle_change_prob
-        if random.random() < self.angle_change_prob:
-            self.angle += random.gauss(0, self.angle_change_std)
-            self.angle %= 2 * math.pi
+        self.path.append(self.pos.copy())
+        return self.pos
 
-        # modify speed with speed_change_prob
-        if random.random() < self.speed_change_prob:
-            self.speed += (self.min_speed + self.max_speed)/2 - self.speed + random.gauss(0, self.speed_change_std)
-            self.speed = self.min_speed + (self.max_speed - self.min_speed) * (1 / (1 + math.exp(-self.speed)))
-
-        self.path.append((self.x, self.y))
-        return (self.x, self.y)
+    def sigmoid(self, x: float) -> float:
+        return 1 / (1 + math.exp(-x))
 
     def get_path(self):
         return self.path
@@ -89,21 +101,20 @@ class Agent:
 
     def get_agent_params(self) -> dict[str, float]:
         return {
-            'min_speed': self.min_speed,
-            'max_speed': self.max_speed,
-            'speed_change_prob': self.speed_change_prob,
-            'speed_change_std': self.speed_change_std,
-            'angle_change_prob': self.angle_change_prob,
-            'angle_change_std': self.angle_change_std,
-
+            'v_min': self.v_min,
+            'v_max': self.v_max,
+            'theta_s': self.theta_s,
+            'mu_s': self.mu_s,
+            'sigma_s': self.sigma_s,
+            'kappa': self.kappa,
+            'speed_change_prob': self.speed_change_prob
         }
 
     def reset(self):
-        self.x = 0.0
-        self.y = 0.0
-        self.speed = random.uniform(self.min_speed, self.max_speed)
-        self.angle = random.uniform(0, 2 * math.pi)
-        self.path = [(self.x, self.y)]
-        self.data = pd.DataFrame([{'step': 0, 'angle' : self.angle, 'speed': self.speed, 'x': self.x, 'y': self.y, 'collision': False}],
-            columns=['step', 'angle', 'speed', 'x', 'y', 'collision'])
+        self.xs = self.x0
+        self.phi = self.phi0
+        self.pos = np.array(self.pos0, dtype=float)
+        self.v = 0.0
+        self.path = [self.pos.copy()]
+        self.data = pd.DataFrame([{'step': 0, 'direction' : 0, 'speed': 0, 'x': self.pos[0], 'y': self.pos[1], 'collision': False}])
         self.steps = 0

@@ -1,6 +1,5 @@
 import random
 import pandas as pd
-import math
 from data_generation.Environment import Environment
 from data_generation.Agent import Agent
 import json
@@ -21,12 +20,15 @@ class DataGenerator:
 
     def generate_agents(self):
         agents_params_ranges = [
-            {'min_speed': [0, 0.5],
-             'max_speed': [1, 2],
-             'speed_change_prob': [0.3, 0.7],
-             'speed_change_std': [0.2, 0.5],
-             'angle_change_prob': [0.3, 0.7],
-             'angle_change_std': [math.pi/8, math.pi/2]}
+            {'v_min': [0.02, 0.1], 
+            'v_max': [0.6, 0.8], 
+            'dt': [0.2, 0.2],
+            'theta_s': [0.2, 0.4], 
+            'mu_s': [0.0, 0.1], 
+            'sigma_s': [0.3, 0.5],
+            'kappa': [1.0, 10.0],
+            'speed_change_prob': [0.1, 0.2],
+            }
         ]
         agents = []
         for _ in range(self.n_agents):
@@ -36,9 +38,9 @@ class DataGenerator:
 
     def generate_environments(self):
         env_params_ranges = [
-            {'num_corners': [3, 8],
-             'min_radius': [5, 10],
-             'max_radius': [15, 20]}
+            {'num_corners': [3, 3],
+             'min_radius': [1, 1],
+             'max_radius': [1, 1]}
         ]
         environments = []
         for _ in range(self.n_environments):
@@ -46,7 +48,7 @@ class DataGenerator:
             environments.append(env_params)
         return environments
 
-    def prepare_data(self):
+    def compress_data(self):
         self.data['step'] = self.data['step'].astype('Int16')
         self.data['agent_id'] = self.data['agent_id'].astype('Int16')
         self.data['environment_id'] = self.data['environment_id'].astype('Int16')
@@ -81,5 +83,5 @@ class DataGenerator:
                     pbar.update(1)
                     agent.reset()
         pbar.close()
-        self.prepare_data()
+        self.compress_data()
         return self.data

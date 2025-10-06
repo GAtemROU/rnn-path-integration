@@ -6,6 +6,7 @@ from matplotlib.patches import Circle
 import math
 from shapely.geometry import LineString
 import random
+import numpy as np
 
 class Environment:
 
@@ -58,7 +59,7 @@ class Environment:
     def get_positions(self) -> list[tuple[float, float]]:
         return self.positions
     
-    def is_inside(self, point: tuple[float, float]) -> bool:
+    def is_inside(self, point: tuple[float, float] | np.ndarray) -> bool:
         return self.env.contains(Point(point))
     
     def find_intersection(self, x_start, y_start, x_end, y_end):
