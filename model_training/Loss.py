@@ -8,7 +8,7 @@ class NavigationLoss(nn.Module):
         self.lambda_L2 = lambda_L2
         self.lambda_FR = lambda_FR
 
-    def forward(self, Y_pred, Y_target, U, model, batch_lengths=None):
+    def forward(self, Y_pred, Y_target, U, model, batch_lengths=None, device="cpu"):
         """
         Compute the total loss according to equations (3)-(5).
         Args:
@@ -23,7 +23,7 @@ class NavigationLoss(nn.Module):
         # --- (3) task loss ---
         if batch_lengths is not None:
             T_max = batch_lengths.max()
-            mask = torch.arange(T_max)[None, :] < batch_lengths[:, None]  # [B, T_max]
+            mask = torch.arange(T_max)[None, :].to(device) < batch_lengths[:, None]  # [B, T_max]
             task_loss = ((Y_pred - Y_target)**2 * mask.unsqueeze(-1)).sum() / mask.sum()
         else:
             task_loss = torch.mean((Y_pred - Y_target)**2)

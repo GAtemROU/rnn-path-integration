@@ -12,6 +12,7 @@ class RNNTrainer:
         self.device = device
         self.loss_fn = NavigationLoss(lambda_L2, lambda_FR)
         self.optimizer = optim.Adam(self.model.parameters(), amsgrad=True)
+        self.loss_history = []
 
     def train_batch(self, X_batch, Y_batch, batch_lengths=None):
         """
@@ -33,7 +34,7 @@ class RNNTrainer:
         Y_preds = torch.cat(Y_preds, dim=0)
         Us = torch.cat(Us, dim=0)
 
-        total_loss, task_loss, reg_L2, reg_FR = self.loss_fn(Y_preds, Y_batch, Us, self.model, batch_lengths=batch_lengths)
+        total_loss, task_loss, reg_L2, reg_FR = self.loss_fn(Y_preds, Y_batch, Us, self.model, batch_lengths=batch_lengths, device=self.device)
         total_loss.backward()
         self.optimizer.step()
 
@@ -49,16 +50,14 @@ class RNNTrainer:
         for epoch in pbar:
             total_loss = 0
             n_batches = 0
-            # epoch_pbar = tqdm.tqdm(dataset, leave=False) if verbose else dataset
             for batch in dataset:
                 X_batch, Y_batch = batch[0].to(self.device), batch[1].to(self.device)
                 batch_lengths = batch[2].to(self.device) if len(batch) > 2 else None
                 stats = self.train_batch(X_batch, Y_batch, batch_lengths=batch_lengths)
                 total_loss += stats["total"]
                 n_batches += 1
-                # if verbose:
-                #     epoch_pbar.set_description(f"Batch Loss: {stats['total']:.6f}")
             if verbose:
                 pbar.set_description(f"Epoch {epoch:3d} | Total Loss: {total_loss/n_batches:.6f}")
+            self.loss_history.append(total_loss / n_batches)
         if verbose:
             pbar.close()

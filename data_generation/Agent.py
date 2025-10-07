@@ -63,9 +63,11 @@ class Agent:
         while True:
             # Heading update: sample turn from von Mises (center 0)
             dphi = self.rng.vonmises(0.0, self.kappa)
-            dx = self.v * self.dt * np.cos(self.phi + dphi)
-            dy = self.v * self.dt * np.sin(self.phi + dphi)
-            self.phi += dphi
+            self.phi += dphi + 2 * math.pi
+            self.phi %= 2 * math.pi
+            dx = self.v * self.dt * np.cos(self.phi)
+            dy = self.v * self.dt * np.sin(self.phi)
+
             if self.environment.is_inside(self.pos + np.array([dx, dy])):
                 self.pos += np.array([dx, dy])
                 break

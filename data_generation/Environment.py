@@ -32,7 +32,12 @@ class Environment:
         positions = []
         # divide the circle into num_corners segments
         for i in range(self.num_corners):
-            angle = 2 * math.pi * i / self.num_corners
+            angle = 2 * math.pi * i / self.num_corners 
+            if self.num_corners == 3:
+                angle += math.pi / 2
+            elif self.num_corners == 4:
+                angle += math.pi / 4
+            angle %= 2 * math.pi
             radius = random.uniform(self.min_radius, self.max_radius)
             x = radius * math.cos(angle)
             y = radius * math.sin(angle)
@@ -50,9 +55,6 @@ class Environment:
             max_circle = Circle((0, 0), self.max_radius, color='green', fill=False)
             plt.gca().add_artist(min_circle)
             plt.gca().add_artist(max_circle)
-            for i in range(self.num_corners):
-                angle = 2 * math.pi * i / self.num_corners
-                plt.plot([0, self.max_radius * math.cos(angle)], [0, self.max_radius * math.sin(angle)], color='black', linestyle='--')
         plt.title("Environment Visualization")
         
 

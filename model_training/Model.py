@@ -51,3 +51,6 @@ class RNNModel(nn.Module):
 
         return torch.cat(U, dim=0), torch.cat(Y, dim=0)
 
+    def set_device(self, device):
+        self.device = device
+        self.to(device)
