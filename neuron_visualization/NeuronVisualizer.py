@@ -20,10 +20,10 @@ class NeuronVisualizer:
         row = 0
         for batch in pbar:
             X, Y, lengths, run_ids = batch
-            X = X[0]
-            Y = Y[0]
-            length = lengths[0]
-            activations, Y_pred = self.model.forward(X, length)
+            X = X.squeeze(0)
+            Y = Y.squeeze(0)
+            lengths = lengths.squeeze(0)
+            activations, Y_pred = self.model.forward(X, lengths)
             Y_pred = Y_pred.detach().cpu().numpy()
             activations = activations.detach().cpu().numpy()
             for j in range(Y.shape[0]):
@@ -32,16 +32,14 @@ class NeuronVisualizer:
                         x, y = Y_pred[j]
                     else:
                         x, y = Y[j]
-                    try:
-                        self.neuron_activations[i][row] = (x, y, activations[j][i])
-                    except Exception:
-                        print(i, row)
+                    self.neuron_activations[i][row] = (x, y, activations[j][i])
                 row+=1
         pbar.close()
     
-    def get_spatial_maps(self, bins=40, smooth_sigma=1.5):
+    def get_spatial_maps(self, bins=40, smooth_sigma=1.5, absolute=False):
         maps = np.empty((self.model.N, bins, bins))
-        for i in range(self.model.N):
+        pbar = tqdm.tqdm(range(self.model.N))
+        for i in pbar:
             activations = self.neuron_activations[i]
             x = np.array([a[0] for a in activations])
             y = np.array([a[1] for a in activations])
@@ -49,12 +47,14 @@ class NeuronVisualizer:
 
             heatmap, xedges, yedges = np.histogram2d(x, y, bins=bins, weights=u)
             counts, _, _ = np.histogram2d(x, y, bins=bins)
-            
+            if absolute:
+                heatmap = np.abs(heatmap)
             mean_activity = np.divide(heatmap, counts, out=np.zeros_like(heatmap), where=counts>0)
             mean_activity = gaussian_filter(mean_activity, sigma=smooth_sigma)
             for j in range(bins):
                 for k in range(bins):
                     maps[i][j][k] = mean_activity[j][k]
+        pbar.close()
         return maps
     
     def flatten_norm_maps(self, maps):
