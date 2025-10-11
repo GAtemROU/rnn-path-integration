@@ -38,7 +38,7 @@ class DataGenerator:
 
     def generate_environments(self):
         env_params_ranges = [
-            {'num_corners': [3, 3],
+            {'num_corners': [4, 4],
              'min_radius': [1, 1],
              'max_radius': [1, 1]}
         ]
