@@ -1,0 +1,49 @@
+\documentclass{article}
+
+% ready for submission
+\usepackage[nonatbib, preprint]{neurips_2023}
+
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage[colorlinks=true,linkcolor=black,citecolor=black,urlcolor=black]{hyperref}       % hyperlinks
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage{xcolor}         % colors
+\usepackage[natbibapa]{apacite}
+
+
+\title{Seminar Report on Grid Cells Project}
+\author{Tymur Mykhailevskyi\\
+  \texttt{7031100}\\
+  University of Saarland\\
+  \texttt{tymy00001@stud.uni-saarland.de}
+  }
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+This is a seminar report on the project dedicated to deepen the understanding of grid cells. The main focus of the report was to slightly modify the methodology of the original paper by \cite{chaplot2018active}, which presents RNN path integration along with interpretability of the model. The initial idea was to train a more robust model that would be able to generalize better, therefore, mimicking closer to how the real grid cells would appear. However, the results were not as expected and even the initial replication of the original paper was not entirely successful. The report shows in detail the steps taken to achieve the results, as well as the problems faced during the project. In addition, some potential future directions are discussed.
+\end{abstract}
+
+\section{Introduction}
+
+The brain's ability to navigate and understand spatial environments is a complex and fascinating process that has been the subject of extensive research in neuroscience. The main parts of the brain responsible for spatial navigation are the hippocampus and the entorhinal cortex. Within these regions a number of specialized neurons have been identified, including speed cells, head direction cells, border cells, grid cells and place cells. 
+
+Grid cells play a crucial role in navigation and spatial memory by providing a coordinate system for the brain to represent space. Understanding how grid cells work and how they are organized is a key challenge in neuroscience. The main focus of this report is on grid cells, which are a type of neuron that fire in a hexagonal pattern as an animal moves through space. They were first discovered in the entorhinal cortex of rats by \cite{hafting2005microstructure} and have since been found in other species, including humans. Grid cells are thought to provide a metric for spatial navigation, allowing animals to estimate their position and distance from landmarks in their environment.
+
+The original paper by \cite{chaplot2018active} presents a model of brain cells responsible for spatial navigation using recurrent neural networks (RNNs) and explores the interpretability of the model. The goal of this seminar report is to build upon this work by modifying the methodology to improve the model's performance and interpretability. The absence of the original codebase made the replication of the results more challenging.
+
+\section{Methodology}
+The methodology of the original paper by \cite{chaplot2018active} involves training a recurrent neural network (RNN) to perform path integration, which is the process of estimating one's position based on self-motion cues. The RNN is trained using a dataset of simulated trajectories, where the input to the network is a sequence of speed and direction signals, and the output is the estimated position of the agent by x and y coordinates. The RNN architecture consists of a single hidden layer with 100 units and uses a tanh activation function. The network is trained using backpropagation through time (BPTT) with a mean squared error loss function extended with a regularization term to encourage sparsity in the hidden layer activations. 
+
+\subsection{Dataset}
+
+
+\bibliography{references}
+\bibliographystyle{apacite}
+\end{document}
