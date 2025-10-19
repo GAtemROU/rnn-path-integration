@@ -11,6 +11,7 @@ def generate_data(args):
     data_gen = DataGenerator(n_agents=args.agents, 
                              n_environments=args.envs, 
                              n_runs=args.runs,
+                             n_corners=args.n_corners,
                              min_steps=args.min_steps, 
                              max_steps=args.max_steps, 
                              seed=args.seed)
@@ -25,6 +26,7 @@ def main():
     parser.add_argument("--agents", type=int, default=10, help="Number of agents to generate.")
     parser.add_argument("--envs", type=int, default=5, help="Number of environments to generate.")
     parser.add_argument("--runs", type=int, default=1, help="Number of runs per agent/environment pair.")
+    parser.add_argument("--n_corners", type=int, default=4, help="Number of corners in the environment.")
     parser.add_argument("--min_steps", type=int, default=100, help="Minimum number of steps per run.")
     parser.add_argument("--max_steps", type=int, default=1000, help="Maximum number of steps per run.")
     parser.add_argument("--seed", type=int, default=42, help="Random seed for reproducibility.")

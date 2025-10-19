@@ -89,11 +89,11 @@ The Table \ref{table:params} summarizes the parameters used in the agent motion 
 \midrule
 $v_{\min}$ & Minimum possible speed (units/s) & $[0.02,\; 0.10]$ \\
 $v_{\max}$ & Maximum possible speed (units/s) & $[0.60,\; 0.80]$ \\
-$\Delta t$ & Simulation time step (s) & $[0.20,\; 0.20]$ \\
+$\Delta t$ & Simulation time step (s) & $0.1$ \\
 $\theta_s$ & Rate of reversion of latent speed toward $\mu_s$ & $[0.20,\; 0.40]$ \\
-$\mu_s$ & Long-term mean of latent speed variable & $[0.00,\; 0.10]$ \\
+$\mu_s$ & Long-term mean of latent speed variable & $0$ \\
 $\sigma_s$ & Standard deviation of speed noise term & $[0.30,\; 0.50]$ \\
-$\kappa$ & Directional persistence (von Mises concentration) & $[1.0,\; 10.0]$ \\
+$\kappa$ & Directional persistence (von Mises concentration) & $[4, \; 10]$ \\
 $p_{\mathrm{change}}$ & Probability of speed update per step & $[0.10,\; 0.20]$ \\
 \bottomrule
 \end{tabular}
@@ -127,6 +127,68 @@ Due to the stochastic nature of the agent motion model, the distributions of spe
 
 
 \section{RNN model training}
+The RNN model architecture and training procedure closely followed the original paper by \cite{chaplot2018active}. The model consisted of a single hidden layer with 100 units and used a tanh activation function. The input to the network was a sequence of speed and direction signals, and the output was the estimated position of the agent in x and y coordinates. The model was trained using backpropagation through time (BPTT) with a mean squared error loss function extended with a regularization term to encourage sparsity in the hidden layer activations.
+
+\[
+\begin{aligned}
+&\textbf{Given:} \quad
+I_t \in \mathbb{R}^{N_{\text{in}}}, \;
+x_t \in \mathbb{R}^{N}, \;
+u_t = \tanh(x_t), \;
+y_t \in \mathbb{R}^{N_{\text{out}}} \\[6pt]
+&\textbf{Initialize:} \quad
+x_0 = \mathbf{0} \\[8pt]
+&\textbf{For } t = 1, \dots, T: \\[3pt]
+&\quad u_t = \tanh(x_t) \\[3pt]
+&\quad y_t = W_{\text{out}} \, u_t \\[3pt]
+&\quad \xi_t \sim \mathcal{N}(0, \sigma_{\text{noise}}^2 I) \\[3pt]
+&\quad I_t = 
+\begin{cases}
+\text{given input at time } t, & \text{if } I \text{ is provided} \\
+\mathbf{0}, & \text{otherwise}
+\end{cases} \\[6pt]
+&\quad \dot{x}_t = 
+\frac{1}{\tau}
+\left( 
+   -x_t 
+   + W_{\text{rec}} u_t 
+   + W_{\text{in}} I_t 
+   + b 
+   + \xi_t
+\right) \\[6pt]
+&\quad x_{t+1} = x_t + \dot{x}_t \, \Delta t \\[10pt]
+&\textbf{Outputs:} \quad
+U = [u_1, \dots, u_T]^\top, \quad
+Y = [y_1, \dots, y_T]^\top
+\label{eq:rnn}
+\end{aligned}
+\]
+
+
+\subsection{Loss and regularization}
+Authors repeatedly pointed out the importance of regularization for the emergence of grid-like representations in the hidden layer of the RNN. Hence, the loss function used for training the model consisted of three componenets: task loss, L2 regularization loss on the input and output weights, and a firing rate regularization loss on the hidden layer activations. The total loss function is defined in Equation \ref{eq:loss}.
+\[
+\begin{aligned}
+\mathcal{L}_{\text{total}} 
+&= \mathcal{L}_{\text{task}} 
+   + \lambda_{\text{L2}} \, \mathcal{L}_{\text{L2}} 
+   + \lambda_{\text{FR}} \, \mathcal{L}_{\text{FR}} \\[6pt]
+\mathcal{L}_{\text{task}} 
+&= \frac{1}{M T N_{\text{out}}} 
+   \sum_{m=1}^{M} \sum_{t=1}^{T} \sum_{k=1}^{N_{\text{out}}}
+   \left( Y_{\text{pred}}^{(m,t,k)} - Y_{\text{target}}^{(m,t,k)} \right)^2 \\[6pt]
+\mathcal{L}_{\text{L2}} 
+&= \frac{1}{N N_{\text{in}}} \sum_{i=1}^{N} \sum_{j=1}^{N_{\text{in}}} 
+   (W_{\text{in},ij})^2
+   + \frac{1}{N_{\text{out}} N} \sum_{k=1}^{N_{\text{out}}} \sum_{i=1}^{N}
+   (W_{\text{out},ki})^2 \\[6pt]
+\mathcal{L}_{\text{FR}} 
+&= \frac{1}{M T N} \sum_{m=1}^{M} \sum_{t=1}^{T} \sum_{i=1}^{N} 
+   U_{mti}^2
+\label{eq:loss}
+\end{aligned}
+\]
+
 
 
 \section{Results}

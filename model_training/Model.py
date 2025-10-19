@@ -11,6 +11,7 @@ class RNNModel(nn.Module):
         self.dt = tau / 10.0
         self.noise_std = noise_std
         self.device = device
+        self.loss_history = []
 
         # Parameters
         self.W_rec = nn.Parameter(torch.randn(N, N) / torch.sqrt(torch.tensor(N, dtype=torch.float)))
@@ -32,22 +33,23 @@ class RNNModel(nn.Module):
         Y = []
 
         for t in range(T):
-            u = torch.tanh(x)
+            # noise
+            noise = torch.randn(self.N, device=self.device) * self.noise_std
+
+            if t == 0:
+                u = torch.tanh(x)
+
+            # Euler update
+            dx = (-x + self.W_rec @ u + self.W_in @ I[t] + self.b + noise) * (self.dt / self.tau)
+            x = x + dx
+
+            if t != 0:
+                u = torch.tanh(x)
 
             # readout
             y = self.W_out @ u
             Y.append(y.unsqueeze(0))
             U.append(u.unsqueeze(0))
-
-            # noise
-            noise = torch.randn(self.N, device=self.device) * self.noise_std
-
-            # external input at time t
-            I_t = I[t] if I is not None else torch.zeros(self.N_in, device=self.device)
-
-            # Euler update
-            dx = (-x + self.W_rec @ u + self.W_in @ I_t + self.b + noise) * (self.dt / self.tau)
-            x = x + dx
 
         return torch.cat(U, dim=0), torch.cat(Y, dim=0)
 

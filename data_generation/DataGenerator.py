@@ -8,11 +8,12 @@ from tqdm import tqdm
 
 class DataGenerator:
 
-    def __init__(self, n_agents: int, n_environments: int, n_runs: int, min_steps: int = 100, max_steps: int = 1000, seed: int = 42):
+    def __init__(self, n_agents: int, n_environments: int, n_runs: int, n_corners: int, min_steps: int = 100, max_steps: int = 1000, seed: int = 42):
         random.seed(seed)
         self.n_agents = n_agents
         self.n_environments = n_environments
         self.n_runs = n_runs
+        self.n_corners = n_corners
         self.min_steps = min_steps
         self.max_steps = max_steps
         self.data = pd.DataFrame()
@@ -22,11 +23,11 @@ class DataGenerator:
         agents_params_ranges = [
             {'v_min': [0.02, 0.1], 
             'v_max': [0.6, 0.8], 
-            'dt': [0.2, 0.2],
+            'dt': [0.1, 0.1],
             'theta_s': [0.2, 0.4], 
-            'mu_s': [0.0, 0.1], 
+            'mu_s': [0.0, 0.0], 
             'sigma_s': [0.3, 0.5],
-            'kappa': [1.0, 10.0],
+            'kappa': [4.0, 10.0],
             'speed_change_prob': [0.1, 0.2],
             }
         ]
@@ -38,7 +39,7 @@ class DataGenerator:
 
     def generate_environments(self):
         env_params_ranges = [
-            {'num_corners': [4, 4],
+            {'num_corners': [self.n_corners, self.n_corners],
              'min_radius': [1, 1],
              'max_radius': [1, 1]}
         ]

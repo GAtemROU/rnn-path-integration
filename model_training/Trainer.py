@@ -56,8 +56,10 @@ class RNNTrainer:
                 stats = self.train_batch(X_batch, Y_batch, batch_lengths=batch_lengths)
                 total_loss += stats["total"]
                 n_batches += 1
+            total_loss /= n_batches
             if verbose:
-                pbar.set_description(f"Epoch {epoch:3d} | Total Loss: {total_loss/n_batches:.6f}")
-            self.loss_history.append(total_loss / n_batches)
+                pbar.set_description(f"Epoch {epoch:3d} | Total Loss: {total_loss:.6f} ")
+            self.loss_history.append(total_loss)
+        self.model.loss_history.append(self.loss_history)
         if verbose:
             pbar.close()
