@@ -61,7 +61,7 @@ def smart_subplots(n_plots, max_cols=7, figsize_per_plot=(4, 4)):
 
     return fig, axes
 
-def plot_loss_history(train_losses, title="Training Loss Over Epochs", output_path=None, output_name="loss_plot.png"):
+def plot_loss_history(train_losses, title="Training Loss Over Epochs", output_path=None):
     """
     Plots the training loss history.
     

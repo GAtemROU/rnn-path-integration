@@ -129,40 +129,35 @@ Due to the stochastic nature of the agent motion model, the distributions of spe
 \section{RNN model training}
 The RNN model architecture and training procedure closely followed the original paper by \cite{chaplot2018active}. The model consisted of a single hidden layer with 100 units and used a tanh activation function. The input to the network was a sequence of speed and direction signals, and the output was the estimated position of the agent in x and y coordinates. The model was trained using backpropagation through time (BPTT) with a mean squared error loss function extended with a regularization term to encourage sparsity in the hidden layer activations.
 
-\[
-\begin{aligned}
-&\textbf{Given:} \quad
-I_t \in \mathbb{R}^{N_{\text{in}}}, \;
-x_t \in \mathbb{R}^{N}, \;
-u_t = \tanh(x_t), \;
-y_t \in \mathbb{R}^{N_{\text{out}}} \\[6pt]
-&\textbf{Initialize:} \quad
-x_0 = \mathbf{0} \\[8pt]
-&\textbf{For } t = 1, \dots, T: \\[3pt]
-&\quad u_t = \tanh(x_t) \\[3pt]
-&\quad y_t = W_{\text{out}} \, u_t \\[3pt]
-&\quad \xi_t \sim \mathcal{N}(0, \sigma_{\text{noise}}^2 I) \\[3pt]
-&\quad I_t = 
-\begin{cases}
-\text{given input at time } t, & \text{if } I \text{ is provided} \\
-\mathbf{0}, & \text{otherwise}
-\end{cases} \\[6pt]
-&\quad \dot{x}_t = 
-\frac{1}{\tau}
-\left( 
-   -x_t 
-   + W_{\text{rec}} u_t 
-   + W_{\text{in}} I_t 
-   + b 
-   + \xi_t
-\right) \\[6pt]
-&\quad x_{t+1} = x_t + \dot{x}_t \, \Delta t \\[10pt]
-&\textbf{Outputs:} \quad
-U = [u_1, \dots, u_T]^\top, \quad
-Y = [y_1, \dots, y_T]^\top
-\label{eq:rnn}
-\end{aligned}
-\]
+
+\begin{align}
+\label{eq:rnn_init}
+x_0 &= 0, \quad u_0 = \tanh(x_0) = 0, \\[0.5em]
+\label{eq:rnn_update}
+x_t &= x_{t-1}
+  + \frac{\Delta t}{\tau}
+    \left(
+      -x_{t-1}
+      + W_{\mathrm{rec}} u_{t-1}
+      + W_{\mathrm{in}} I_t
+      + b
+      + \xi_t
+    \right),
+  \quad \xi_t \sim \mathcal{N}(0, \sigma^2 I), \\[0.8em]
+\label{eq:rnn_activations}
+u_t &= \tanh(x_t), \\[0.5em]
+\label{eq:rnn_out}
+y_t &= W_{\mathrm{out}} u_t
+\end{align}
+
+Equation \ref{eq:rnn_init} shows the initialization of the RNN's hidden state, where $x_0$ is the initial hidden state vector, and $u_0$ is the initial activation vector obtained by applying the tanh activation function to $x_0$, ensuring that the initial prediction aligns with the starting position of the agent at the origin.
+
+Equation \ref{eq:rnn_update} describes the update of the hidden state at each time step $t$. The hidden state $x_t$ is updated based on the previous hidden state $x_{t-1}$, the recurrent weights $W_{\mathrm{rec}}$, the input weights $W_{\mathrm{in}}$, the input vector $I_t$ (which includes speed and direction), a bias term $b$, and a noise term $\xi_t$ sampled from a Gaussian distribution with mean 0 and variance $\sigma^2 I$. The time constant $\tau$ and time step $\Delta t$ control the dynamics of the RNN.
+
+Equation \ref{eq:rnn_activations} defines the activation of the hidden layer at each time step $t>0$. The activation $u_t$ is obtained by applying the tanh activation function to the hidden state $x_t$, introducing non-linearity into the model.
+
+Equation \ref{eq:rnn_out} specifies the output of the RNN at each time step $t$. The output $y_t$ is computed by multiplying the output weights $W_{\mathrm{out}}$ with the activation vector $u_t$. The output $y_t$ represents the estimated position of the agent in x and y coordinates.
+
 
 
 \subsection{Loss and regularization}
@@ -189,9 +184,17 @@ Authors repeatedly pointed out the importance of regularization for the emergenc
 \end{aligned}
 \]
 
-
-
 \section{Results}
+The RNN models were trained separately on the triangle and square environment datasets. The training process involved optimizing the total loss function defined in Equation \ref{eq:loss} using backpropagation through time (BPTT). The models were trained for a total of 1500 epochs, with the training loss being monitored throughout the process. The training loss curves for both models are shown in Figure \ref{fig:loss_curves}. 
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{figures/rnn_square_model_loss_history.png}
+    \caption{Training loss curves for RNN models trained on a square environment.}
+    \label{fig:loss_curves}
+\end{figure}
+
+
 
 \section{Discussion}
 
