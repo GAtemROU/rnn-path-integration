@@ -1,6 +1,8 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+from itertools import chain
+
 
 def plot_data_distribution(data, columns, title=None, output_path=None):
     """
@@ -58,3 +60,25 @@ def smart_subplots(n_plots, max_cols=7, figsize_per_plot=(4, 4)):
         ax.axis('off')
 
     return fig, axes
+
+def plot_loss_history(train_losses, title="Training Loss Over Epochs", output_path=None, output_name="loss_plot.png"):
+    """
+    Plots the training loss history.
+    
+    Parameters:
+    train_losses (list or np.array): List of training loss values.
+    title (str): Title of the plot.
+    output_path (str, optional): If provided, saves the plot to the specified path.
+    """
+    train_losses = list(chain(*train_losses))
+    plt.figure(figsize=(10, 6))
+    plt.plot(train_losses, label='Training Loss', color='blue')
+    plt.title(title)
+    plt.xlabel('Epochs')
+    plt.ylabel('Loss')
+    plt.legend()
+    plt.grid(True)
+    
+    if output_path:
+        plt.savefig(output_path)
+    plt.show()

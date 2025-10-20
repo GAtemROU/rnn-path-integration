@@ -51,9 +51,7 @@ class NeuronVisualizer:
                 heatmap = np.abs(heatmap)
             mean_activity = np.divide(heatmap, counts, out=np.zeros_like(heatmap), where=counts>0)
             mean_activity = gaussian_filter(mean_activity, sigma=smooth_sigma)
-            for j in range(bins):
-                for k in range(bins):
-                    maps[i][j][k] = mean_activity[j][k]
+            maps[i] = mean_activity.T
         pbar.close()
         return maps
     
@@ -76,4 +74,4 @@ class NeuronVisualizer:
         plt.show()
 
     def get_neuron_activations(self):
-        return self.neuron_ativations
+        return self.neuron_activations
