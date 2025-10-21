@@ -161,7 +161,8 @@ Equation \ref{eq:rnn_out} specifies the output of the RNN at each time step $t$.
 
 
 \subsection{Loss and regularization}
-Authors repeatedly pointed out the importance of regularization for the emergence of grid-like representations in the hidden layer of the RNN. Hence, the loss function used for training the model consisted of three componenets: task loss, L2 regularization loss on the input and output weights, and a firing rate regularization loss on the hidden layer activations. The total loss function is defined in Equation \ref{eq:loss}.
+Authors repeatedly pointed out the importance of regularization for the emergence of grid-like representations in the hidden layer of the RNN. Hence, the loss function used for training the model consisted of three componenets. Task loss - mean squared error between predicted and target positions. L2 regularization on input and output weights to prevent overfitting. And firing rate regularization to encourage sparsity in the hidden layer activations. The total loss function is defined as follows:
+
 \[
 \begin{aligned}
 \mathcal{L}_{\text{total}} 
@@ -189,14 +190,45 @@ The RNN models were trained separately on the triangle and square environment da
 
 \begin{figure}
     \centering
-    \includegraphics[width=\textwidth]{figures/rnn_square_model_loss_history.png}
+    \includegraphics[width=0.8\textwidth]{figures/rnn_square_model_loss_history.png}
     \caption{Training loss curves for RNN models trained on a square environment.}
     \label{fig:loss_curves}
 \end{figure}
 
+\begin{figure}
+    \centering
+    \includegraphics[width=0.4\textwidth]{figures/rnn_square_model_prediction_bad.png}
+    \includegraphics[width=0.4\textwidth]{figures/rnn_square_model_prediction_good.png}
+    \includegraphics[width=0.4\textwidth]{figures/rnn_triangle_model_prediction_bad.png}
+    \includegraphics[width=0.4\textwidth]{figures/rnn_triangle_model_prediction_good.png}
+    \caption{examples of trajectory predictions by RNN models trained on square (top two) and triangle (bottom two) environments.}
+    \label{fig:predictions}
+\end{figure}
+Figure \ref{fig:predictions} shows examples of trajectory predictions made by the RNN models trained on square and triangle environments. Both runs were part of the training data. In both cases, some trajectories were predicted quite well, while others tend to diverge significantly from the ground truth. 
+
+However, the overall performance of the models shows that they were able to pick up the general trend of the trajectories, but struggled with accurately predicting the exact positions, especially for longer trajectories and trajectories with sharp turns. This indicates that while the models were able to learn some aspects of the path integration task, they were not able to fully capture the complexity of the task.
+
+
+\section{Neuron visualization}
+To visualize the hidden layer neurons of the trained RNN models, the activations of neurons were recorded for all training data. Further, the activations were turned into heatmaps representing the firing rate of each neuron at different spatial locations. The heatmaps were smoothed using a Gaussian filter to reduce noise and enhance the visibility of patterns. 
+
+\begin{figure}
+  \centering
+  \includegraphics[width=\textwidth]{figures/rnn_square_neuron_spatial_maps.png}
+  \caption{Spatial firing rate maps of hidden layer neurons in the RNN model trained on square environment.}
+  \label{fig:square_neuron_maps}
+\end{figure}
+
+The visualizations of the hidden layer neurons for the RNN model trained on the square environment are shown in Figure \ref{fig:square_neuron_maps}. Each subplot represents the spatial firing rate map of a single neuron in the hidden layer. The color intensity indicates the firing rate, with warmer colors representing higher firing rates. 
+
+Unfortunately, most of the neurons exhibit diffuse and non-specific firing patterns. However, there still are clear examples of border cells, which fire preferentially along the boundaries of the environment. 
+
+A lot of neurons have a distinctive rate of fire for the middle of the environment, this is likely due to the initialization of the agent at the center of the environment for all trajectories. This behavior can be seen as an overfitting to the training data. 
+
 
 
 \section{Discussion}
+
 
 
 
