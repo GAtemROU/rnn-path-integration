@@ -31,7 +31,7 @@
 \maketitle
 
 \begin{abstract}
-This is a seminar report on the project dedicated to deepen the understanding of grid cells. The main focus of the report was to slightly modify the methodology of the original paper by \cite{chaplot2018active}, which presents RNN path integration along with interpretability of the model. The initial idea was to train a more robust model that would be able to generalize better, therefore, mimicking closer to how the real grid cells would appear. However, the results were not as expected and even the initial replication of the original paper was not entirely successful. The report shows in detail the steps taken to achieve the results, as well as the problems faced during the project. In addition, some potential future directions are discussed.
+This is a seminar report on the project dedicated to deepen the understanding of grid cells. The main focus of the report was to slightly modify the methodology of the original paper by \cite{chaplot2018active}, which presents RNN path integration along with interpretability of the model. The initial idea was to train a more robust model that would be able to generalize better, therefore, mimicking closer to how the real grid cells would appear. However, the results were not as expected and even the initial replication of the original paper was not entirely successful. The report shows in detail the steps taken to achieve the results, as well as the problems faced during the project. In addition, some future directions are discussed. All code is available via \cite{sourcecode}.
 \end{abstract}
 
 \section{Introduction}
@@ -239,9 +239,18 @@ Clearly the replication of the original paper by \citep{chaplot2018active}, has 
 
 There are multiple factors contributing to the results of this project. First of all, the data generation procedure could have been replicated closely, due to the lack of information. Even though, the presented approach seems plausible, it might have some subtle but major differences to the original data. 
 
-Second of all, due to the time constraints, the models have not been fine tuned well enough. The sequential data causes the training procedure to be inefficient. Training such model for 1500 epochs on 1000 trajectories takes approximately 10 hours. This makes the training process very inefficient. 
+Second of all, due to the time constraints, the models have not been fine tuned well enough. The sequential data causes the training procedure to be inefficient. Training such model for 1500 epochs on 1000 trajectories takes approximately 10 hours. Therefore, only a limited number of hyperparameter combinations could have been tried out.
 
 Finally, a number of small deviations from the original approach could have build up. Causing the results to greatly differ from the initial paper.
+
+\subsection{Future work}
+To further improve the results of this project, several steps can be taken. First of all, the data generation procedure can be refined to more closely match the original paper. This could involve experimenting with different motion models or trajectory generation techniques. 
+
+Second of all, no cross validation has been performed to tune the hyperparameters of the model. A more systematic approach to hyperparameter tuning could lead to better model performance. However, better accuracy on the data does not guarantee that the neuron firing patterns will exhibit grid cell behavior. 
+
+Finally, more complex environments can be explored, as well as different RNN architectures. This could involve experimenting with deeper networks, different activation functions, or alternative training procedures.
+
+
 
 
 
