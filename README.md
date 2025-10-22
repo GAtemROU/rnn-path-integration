@@ -6,6 +6,7 @@ This project presents an implementation of the RNN path integration closely foll
 The project involves generating synthetic trajectory data in a 2D environment. The agent moves within a polygonal environment, and its position is updated based on speed and heading direction inputs. The generated trajectories are used to train the RNN model for path integration.
 
 Example trajectory:
+
 ![alt text](tex/figures/trajectory_sample.png)
 
 # Results and Discussion
