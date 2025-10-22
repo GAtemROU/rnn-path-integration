@@ -11,7 +11,7 @@ Example trajectory:
 
 # Results and Discussion
 ## Model Performance
-The model performance was evaluated based on the accuracy of the predicted positions compared to the ground truth. The results showed that while the model grasped the main idea of path integration, it still tended to diverge over longer trajectories.
+The model performance was evaluated based on the accuracy of the predicted positions compared to the ground truth. The results showed that while the model grasped the main idea of path integration, it still tended to diverge over longer trajectories. The best models can be found under the `models/` directory.
 
 ![alt text](tex/figures/rnn_square_model_prediction_good.png)
 
