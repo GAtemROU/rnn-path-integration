@@ -45,7 +45,6 @@ class Environment:
         return positions
 
     def visualize(self, details: bool = False):
-        # plot current env
         x, y = self.env.exterior.xy
         plt.fill(x, y, alpha=0.5, fc='blue', ec='black')
         plt.xlim(-self.max_radius * 1.5, self.max_radius * 1.5)

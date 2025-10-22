@@ -16,7 +16,8 @@
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{graphicx}
-
+\usepackage{subcaption}
+\usepackage[export]{adjustbox}
 
 \title{Seminar Report on Grid Cells Project}
 \author{Tymur Mykhailevskyi\\
@@ -101,7 +102,7 @@ $p_{\mathrm{change}}$ & Probability of speed update per step & $[0.10,\; 0.20]$ 
 \end{table}
 
 \subsubsection{Environment and trajectories}
-Initially the idea was to make more complex environments specifying number of corners and two radiuses, the corners being randomly generated along the ring defined by the two radiuses. However, due to the complexity of the task and time constraints, the trained models only used square and equilateral triangle environments fit in a unit circle. The agent was initialized at (0, 0) position and direction of 0 radians. Each trajectory consisted of 20 to 50 steps.  In case of agent going out of bounds of the environement, the current step was discarded and a new step was generated until the agent stayed within the environment limits, following the original paper's approach. 
+Initially the idea was to make more complex environments specifying number of corners and two radiuses, the corners being randomly generated along the ring defined by the two radiuses. However, due to the complexity of the task and time constraints, the trained models only used square and equilateral triangle environments fit in a unit circle. The agent was initialized at (0, 0) position and direction of 0 radians. Each trajectory consisted of 20 to 50 steps.  In case of agent going out of bounds of the environment, the current step was discarded and a new step was generated until the agent stayed within the environment limits, following the original paper's approach. 
 
 Two datasets were created - one for each type of environment. 50 different agents were simulated for each environment, with each agent having its own set of parameters sampled from the ranges specified in Table \ref{table:params}. For each agent, 20 trajectories were generated, resulting in a total of 1000 trajectories per environment type. 
 
@@ -210,24 +211,40 @@ However, the overall performance of the models shows that they were able to pick
 
 
 \section{Neuron visualization}
-To visualize the hidden layer neurons of the trained RNN models, the activations of neurons were recorded for all training data. Further, the activations were turned into heatmaps representing the firing rate of each neuron at different spatial locations. The heatmaps were smoothed using a Gaussian filter to reduce noise and enhance the visibility of patterns. 
+To visualize the hidden layer neurons of the trained RNN models, the activations of neurons were recorded for all training data. Further, the activations were turned into heatmaps representing the firing rate of each neuron at different spatial locations. The heatmaps were normalized and smoothed using a Gaussian filter to reduce noise and enhance the visibility of patterns. 
 
-\begin{figure}
+\begin{figure}[h]
   \centering
-  \includegraphics[width=\textwidth]{figures/rnn_square_neuron_spatial_maps.png}
-  \caption{Spatial firing rate maps of hidden layer neurons in the RNN model trained on square environment.}
+  \begin{subfigure}{0.49\textwidth}
+    \includegraphics[width=0.99\textwidth, left]{figures/rnn_square_neuron_spatial_maps.png}  
+  \end{subfigure}
+  \begin{subfigure}{0.49\textwidth}
+    \includegraphics[width=0.99\textwidth, right]{figures/rnn_triangle_neuron_spatial_maps.png}
+  \end{subfigure}
+  \caption{Spatial firing rate maps of hidden layer neurons in the RNN model trained on square (left) and triangle (right) environments.}
   \label{fig:square_neuron_maps}
 \end{figure}
 
-The visualizations of the hidden layer neurons for the RNN model trained on the square environment are shown in Figure \ref{fig:square_neuron_maps}. Each subplot represents the spatial firing rate map of a single neuron in the hidden layer. The color intensity indicates the firing rate, with warmer colors representing higher firing rates. 
+The visualizations of the hidden layer neurons for the RNN model trained on the square environment are shown in Figure \ref{fig:square_neuron_maps}. Each subplot represents the spatial firing rate map of a single neuron in the hidden layer. The color intensity indicates the firing rate, with warmer colors representing higher firing rates. As the values were normalized, one can see that for triangle environment out of bounds firings values are different. In reality, there is no data outside of the environment, however, zero could be a high or a low value after normalization, depending on the general trend.  
 
 Unfortunately, most of the neurons exhibit diffuse and non-specific firing patterns. However, there still are clear examples of border cells, which fire preferentially along the boundaries of the environment. 
 
-A lot of neurons have a distinctive rate of fire for the middle of the environment, this is likely due to the initialization of the agent at the center of the environment for all trajectories. This behavior can be seen as an overfitting to the training data. 
+A lot of neurons have a distinctive rate of fire for the middle of the environment, this is likely due to the initialization of the agent at the center of the environment for all trajectories. This behavior can be seen as an overfitting to the training data.
 
+Furthermore, no neurons exhibit clear grid cell behavior. Some of them have multiple distinct firing points along the environment, however, the points do not seem to aligned in any strict pattern.
 
 
 \section{Discussion}
+Clearly the replication of the original paper by \citep{chaplot2018active}, has not been entirely successful. While the RNN was able to pick up the general grasp of the task, the neuron firing rates did not exhibit a similar grid cell behavior. 
+
+There are multiple factors contributing to the results of this project. First of all, the data generation procedure could have been replicated closely, due to the lack of information. Even though, the presented approach seems plausible, it might have some subtle but major differences to the original data. 
+
+Second of all, due to the time constraints, the models have not been fine tuned well enough. The sequential data causes the training procedure to be inefficient. Training such model for 1500 epochs on 1000 trajectories takes approximately 10 hours. This makes the training process very inefficient. 
+
+Finally, a number of small deviations from the original approach could have build up. Causing the results to greatly differ from the initial paper.
+
+
+
 
 
 
